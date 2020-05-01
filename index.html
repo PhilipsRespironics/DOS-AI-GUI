@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <title>Hello test!</title>
+  </head>
+  <body>
+    Forms: <span id="label-forms">(select forms)</span> <br/>
+    Templates: <span id="label-templates">(select templates)</span> <br/>
+
+    <input type="button" id="open-forms" value="Open Forms"/>
+    <input type="button" id="open-templates" value="Open Templates" /> <br/>
+
+    <input type="button" id="run" value="Run" />
+
+    <!-- You can also require other files to run in this process -->
+    <script src="./renderer.js"></script>
+  </body>
+
+  <script>
+    const fs = require("fs");
+    const { dialog } = require("electron").remote;
+    var ipc = require('electron').ipcRenderer;
+
+    var forms = [];
+    var templates = [];
+
+    document.getElementById("open-forms").addEventListener("click", () => {
+      dialog.showOpenDialog({
+        properties: ["openDirectory"]
+      }).then(result => {
+        console.log(result.canceled);
+        console.log(result.filePaths);
+        var s = "";
+        for (var i = 0; i < result.filePaths.length; i++) {
+          s = s + result.filePaths[i];
+        }
+        document.getElementById("label-forms").textContent = s;
+        forms = result.filePaths;
+      }).catch(err => console.log(err));
+    });
+
+    document.getElementById("open-templates").addEventListener("click", () => {
+      dialog.showOpenDialog({
+        properties: ["openDirectory", "multiSelections"]
+      }).then(result => {
+        console.log(result.canceled);
+        console.log(result.filePaths);
+        var s = "";
+        for (var i = 0; i < result.filePaths.length; i++) {
+          s = s + result.filePaths[i];
+        }
+        document.getElementById("label-templates").textContent = s;
+        templates = result.filePaths;
+      }).catch(err => console.log(err));
+    });
+
+    document.getElementById("run").addEventListener("click", () => {
+      var args = ["./main.py"];
+      args.push(forms[0]);
+      for (var i = 0; i < templates.length; i++) {
+        args.push(templates[i]);
+      }
+
+      ipc.send('invokeAction', args);
+      console.log('sent invokeAction');
+    });
+  </script>
+</html>
