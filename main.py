@@ -85,7 +85,12 @@ def main():
       doc = Document(form_dir)
       for table in doc.tables:
         for i, row in enumerate(table.rows):
-          check = check_alias(row.cells[0].text)
+          check = False
+          try:
+            check = check_alias(row.cells[0].text)
+          except IndexError:
+            continue
+
           if check != False:
             cell_text = row.cells[1].text
             if (check in alias_vals.keys()) and (alias_vals[check] != cell_text):
